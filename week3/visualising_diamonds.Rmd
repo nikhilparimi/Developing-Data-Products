@@ -1,0 +1,47 @@
+---
+title: "Visualising Diamonds Data"
+author: "Nikhil Parimi"
+date: "2024-12-19"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(plotly)
+```
+
+## Diamonds Dataset
+
+The dataframe `diamonds` is a dataset containing the prices among a litany of other variables of around 54,000 diamonds. We will do some visualisations of this dataset using plotly.
+
+First let's loads the data in and view its structure.
+
+```{r, echo =TRUE, comment=""}
+data("diamonds")
+head(diamonds)
+```
+
+## Frequency density plot of price (seperated by quality)
+
+```{r}
+gg <- diamonds |> 
+ggplot(aes(x= price, y = after_stat(density))) + 
+  geom_freqpoly(aes(color = cut), binwidth = 500, linewidth = 0.75)
+
+ggplotly(gg)
+```
+
+## Histogram of carat count
+
+```{r}
+hh <- diamonds |> 
+ggplot(aes(x = carat)) + 
+  geom_histogram(binwidth = 0.01)
+
+ggplotly(hh)
+```
