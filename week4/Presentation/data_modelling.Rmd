@@ -1,0 +1,82 @@
+---
+title: "Investigating ways of modelling data"
+author: "Nikhil Parimi"
+date: "2024-12-20"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r, include=FALSE}
+library(ggplot2)
+library(plotly)
+```
+
+## Introduction
+
+The Shiny App I have produced compares the difference in using a linear model as opposed to a quadratic model when the data generated is quadratic.
+
+The formula I used to generate the synthetic data was of form $y = -0.5x^2 + 10x -18$ and in the range $x = [3, 18]$. I also generated some gaussian noise to add to the y-term of the form $y \sim \mathcal{N}(\mu =0, \sigma^2=1)$.
+
+The code to generate this is down below:
+
+```{r, echo = TRUE}
+x_values <- seq(3, 18, by = 0.1)
+y_values <- -0.5 * x_values^2 + 10 * x_values - 18
+set.seed(123)
+noise <- rnorm(length(y_values), mean = 0, sd = 1)
+y_noisy <- y_values + noise
+data <- data.frame(x = x_values, y = y_noisy)
+```
+
+## Data Visualised
+
+Here is a visualisation of the data generated:
+
+```{r}
+gg <- ggplot(data, aes(x = x, y = y)) +
+  geom_point(color = "black", size = 1.5) +
+  labs(title = "Noisy Quadratic Data",
+       x = "x",
+       y = "y")
+p <- ggplotly(gg)
+p
+```
+
+## Fitting the models
+
+In the Shiny app we then fit the two models to the data and do a visualisation of the fits as well as the models prediction for a chosen value of x (set by the user).
+
+```{r, echo = TRUE, eval=TRUE}
+# Include x^2 term in dataframe for use in quadratic model
+data$x2 <- (data$x)^2
+fit_linear <- lm(y~x, data = data)
+fit_quad <- lm(y~x+x2, data = data)
+```
+
+## Visualising the difference between the two models
+
+```{r}
+linear_coeffs <- coef(fit_linear)
+quad_coeffs <- coef(fit_quad)
+
+linear_pred <- linear_coeffs[1] + linear_coeffs[2] * data$x
+quad_pred <- quad_coeffs[1] + quad_coeffs[2] * data$x + quad_coeffs[3] * data$x2
+
+ff <- gg +
+  geom_line(aes(y = linear_pred), color = "red", linewidth = 1) +
+  geom_line(aes(y = quad_pred), color = "blue", linewidth = 1) + labs(title = "Linear vs Quadratic Model Fit")
+
+q <- ggplotly(ff)
+
+q
+```
+
+## Residual and Diagnostic Plots of Quadratic fit
+The residual plots all appears they should be for each of the diagnostic measures, showing the quadratic was a good fit!
+```{r, eval = TRUE}
+par(mfrow = c(2,2))
+plot(fit_quad)
+```
